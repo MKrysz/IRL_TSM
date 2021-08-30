@@ -1,7 +1,11 @@
 import sqlite3
 
-tables = ("products", "receipts", "purchases")
+tables = ("products", "receipts", "purchases", "nutrition_facts")
 databasePath = r'..\Databases\IRL_TSM.db'
+auchan = "auchan_id"
+kaufland = "kaufland_id"
+carrefour = "carrefour_id"
+biedronka = "biedronka_id"
 
 def customCommand(command):
     database = sqlite3.connect(databasePath)
@@ -14,6 +18,7 @@ def createDatabase():
     database = sqlite3.connect(databasePath)
     c = database.cursor()
     c.execute("""CREATE TABLE products(
+        product_id int,
         name text,
         kaufland_id text,
         auchan_id text,
@@ -22,6 +27,11 @@ def createDatabase():
         tags text,
         value real,
         unit text,
+    )
+    """)
+    database.commit()
+    c.execute("""CREATE TABLE nutrition_facts(
+        product_id int,
         energy real,
         fat real,
         saturated_fat real,
@@ -46,9 +56,24 @@ def createDatabase():
     )
     """)
     database.commit()
+    c.execute("""CREATE TABLE receipts(
+        date text,
+        shop text,
+
+    )
+    """)
+    database.commit()
+    c.execute("""CREATE TABLE purchases(
+        product_id int,
+        receipt_id int,
+        amount_bought real,
+        unit text
+    )
+    """)
+    database.commit()
     database.close()
 
-def addProduct(name, id, kaufland_id = None, auchan_id = None, biedronka_id = None, carrefour_id = None, \
+def addProduct(name, product_id, kaufland_id = None, auchan_id = None, biedronka_id = None, carrefour_id = None, \
     tags = None, value = None, unit = None, energy = None, fat = None, saturated_fat = None, \
     trans_fat = None, salt = None, carbohydrate = None, fiber = None, sugar = None, protein = None, \
     calcium = None, chromium = None, copper = None, flouride = None, iodine = None, iron = None, \
@@ -57,12 +82,27 @@ def addProduct(name, id, kaufland_id = None, auchan_id = None, biedronka_id = No
     database = sqlite3.connect(databasePath)
     c = database.cursor()
     c.execute("""INSERT INTO products VALUES 
-    (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (name, kaufland_id, auchan_id, biedronka_id, carrefour_id, tags, value, unit, energy, fat,\
-    saturated_fat, trans_fat, salt, carbohydrate, fiber, sugar, protein, calcium, chromium, copper,\
-    flouride, iodine, iron, magnesium, manganese, malybdenum, phosphorus, selenium, zinc, id))
+    (?,?,?,?,?,?,?,?,?,)
+    """, (product_id, name, kaufland_id, auchan_id, biedronka_id, carrefour_id, tags, value, unit))
+    database.commit()
+    c.execute("""INSERT INTO nutrition_facts VALUES
+    (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (energy, fat, saturated_fat, trans_fat, salt, carbohydrate, fiber, sugar, protein, \
+        calcium, chromium, copper, flouride, iodine, iron, magnesium, manganese, malybdenum, \
+        phosphorus, selenium, zinc))
     database.commit()
     database.close()
+
+#returns tuple of all (shop_id, product_id) pairs
+def getShopsIds(shops_name):
+    database = sqlite3.connect(databasePath)
+    c = database.cursor()
+    c.execute("SELECT ?, product_id FROM products", (shops_name))
+    result = c.fetchall()
+    database.commit()
+    database.close()
+    return result
+
 
 #return added receipt's rowid
 def addReceipt(date, shop = None, image = None):
@@ -96,6 +136,7 @@ def printAll(table):
         print(row)
     database.commit()
     database.close()
+
 
 
 if __name__ == "__main__":
