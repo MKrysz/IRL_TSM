@@ -3,6 +3,8 @@ import cv2
 import pytesseract
 import time
 
+
+
 set_language = "POL"
 
 def readBarcode(image):
@@ -30,12 +32,18 @@ def readReceiptLive():
     result = []
     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     while True:
-        _, frame = cap.read()   
+        _, frame = cap.read()
         cv2.imshow("live feed", frame)
         userKey = cv2.waitKey(1)
         if userKey == ord("q"):
             break
         elif userKey == ord("w"):
+            result.append(readFrame(frame))
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            result.append(readFrame(frame))
+            frame = cv2.fastNlMeansDenoising(frame)
+            result.append(readFrame(frame))
+            frame = cv2.adaptiveThreshold(frame,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,3,2)
             result.append(readFrame(frame))
     cap.release()
     cv2.destroyAllWindows()
@@ -55,4 +63,8 @@ def readBarcodeLive():
     return barcode
 
 if __name__ == "__main__":
-    print(readBarcodeLive())
+    for string in readReceiptLive():
+        for line in string:
+            print(line)
+        print("\n-----------------")
+        
