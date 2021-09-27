@@ -37,7 +37,7 @@ def readReceiptLive():
         userKey = cv2.waitKey(1)
         if userKey == ord("q"):
             break
-        elif userKey == ord("w"):
+        elif userKey == ord(" "):
             result.append(readFrame(frame))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             result.append(readFrame(frame))
